@@ -25,10 +25,10 @@ If you want to use CMake:
 
 ```bash
 cmake -B build -S .
-cmake --build build --config release
+cmake --build build
 ```
 
-The program file can be found at `./build/release/objparser`. You can use it like this:
+You can use the program like this:
 
 ```bash
 objparser [file.obj]    # replace file.obj with path to .obj file
