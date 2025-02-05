@@ -23,14 +23,14 @@ typedef struct {
     char  *map_highlight;
     char  *map_alpha;
     char  *map_bump;
-} mat;
+} mtl;
 
 // mtl context data
 typedef struct {
     int  nmaterials;
-    mat  *materials;
+    mtl  *materials;
     char *filename;
-} matctx;
+} mtlctx;
 
 // obj context data
 typedef struct {
@@ -48,7 +48,7 @@ typedef struct {
     float *texcoords;
     float *buffer;
     char  *filename;
-    matctx materials;
+    mtlctx materials;
 } objctx;
 
 // parse obj file

@@ -122,7 +122,7 @@ void objctx_malloc(objctx *ctx) {
     ctx->buffer = calloc(8 * ctx->nfaceverts, sizeof(float));
     ctx->meshoffsets = malloc((ctx->nmeshes + 1) * sizeof(int));
     ctx->matindices = malloc(ctx->nmeshes * sizeof(int));
-    ctx->materials.materials = calloc(ctx->materials.nmaterials, sizeof(mat));
+    ctx->materials.materials = calloc(ctx->materials.nmaterials, sizeof(mtl));
 }
 
 void objctx_reset(objctx *ctx) {
@@ -148,77 +148,77 @@ int find_mtlkey(char *s) {
 void parse_mtlline(objctx *ctx, char *s) {
     char *mapstr = NULL;
     int key = find_mtlkey(s);
-    mat *mat = ctx->materials.materials + ctx->materials.nmaterials - 1;
+    mtl *mtl = ctx->materials.materials + ctx->materials.nmaterials - 1;
     switch (key) {
     case KA:
         for (int i = 0; i < 3; i++) {
             char *astr = strtok(NULL, " ");
-            mat->ambient[i] = atof(astr);
+            mtl->ambient[i] = atof(astr);
         }
         break;
     case KD:
         for (int i = 0; i < 3; i++) {
             char *dstr = strtok(NULL, " ");
-            mat->diffuse[i] = atof(dstr);
+            mtl->diffuse[i] = atof(dstr);
         }
         break;
     case KE:
         for (int i = 0; i < 3; i++) {
             char *estr = strtok(NULL, " ");
-            mat->emissive[i] = atof(estr);
+            mtl->emissive[i] = atof(estr);
         }
         break;
     case KS:
         for (int i = 0; i < 3; i++) {
             char *sstr = strtok(NULL, " ");
-            mat->specular[i] = atof(sstr);
+            mtl->specular[i] = atof(sstr);
         }
         break;
     case NI:
         char *rstr = strtok(NULL, " ");
-        mat->refraction = atof(rstr);
+        mtl->refraction = atof(rstr);
         break;
     case NS:
         char *sstr = strtok(NULL, " ");
-        mat->shininess = atof(sstr);
+        mtl->shininess = atof(sstr);
         break;
     case D:
         char *tstr = strtok(NULL, " ");
-        mat->transparency = atof(tstr);
+        mtl->transparency = atof(tstr);
         break;
     case ILLUM:
         char *istr = strtok(NULL, " ");
-        mat->illum = atoi(istr);
+        mtl->illum = atoi(istr);
         break;
     case MAP_KA:
         char *mapstr = strtok(NULL, " ");
-        mat->map_ambient = strdup(mapstr);
+        mtl->map_ambient = strdup(mapstr);
         break;
     case MAP_KD:
         mapstr = strtok(NULL, " ");
-        mat->map_diffuse = strdup(mapstr);
+        mtl->map_diffuse = strdup(mapstr);
         break;
     case MAP_KS:
         mapstr = strtok(NULL, " ");
-        mat->map_specular = strdup(mapstr);
+        mtl->map_specular = strdup(mapstr);
         break;
     case MAP_NS:
         mapstr = strtok(NULL, " ");
-        mat->map_highlight = strdup(mapstr);
+        mtl->map_highlight = strdup(mapstr);
         break;
     case MAP_BUMP:
         mapstr = strtok(NULL, " ");
-        mat->map_bump = strdup(mapstr);
+        mtl->map_bump = strdup(mapstr);
     case MAP_D:
         mapstr = strtok(NULL, " ");
-        mat->map_alpha = strdup(mapstr);
+        mtl->map_alpha = strdup(mapstr);
         break;
     case NEWMTL:
-        mat++;
+        mtl++;
         ctx->materials.nmaterials++;
         char *name = strtok(NULL, " ");
         *strchr(name, '\n') = 0;
-        mat->name = strdup(name);
+        mtl->name = strdup(name);
         break;
     default:
         break;
@@ -275,10 +275,10 @@ void parse_objline(objctx *ctx, char *s) {
         ctx->meshoffsets[ctx->nmeshes++] = ctx->nfaceverts;
         break;
     case USEMTL:
-        char *matname = strtok(NULL, " ");
-        *strchr(matname, '\n') = 0;
+        char *mtlname = strtok(NULL, " ");
+        *strchr(mtlname, '\n') = 0;
         for (int i = 0; i < ctx->materials.nmaterials; i++) {
-            if (!strcmp(matname, ctx->materials.materials[i].name)) {
+            if (!strcmp(mtlname, ctx->materials.materials[i].name)) {
                 ctx->matindices[ctx->nmeshes - 1] = i;
             }
         }
@@ -331,52 +331,52 @@ void build_buffer(objctx *ctx) {
     }
 }
 
-void mat_print(objctx *ctx) {
+void mtl_print(objctx *ctx) {
     printf("materials:\n");
     for (int i = 0; i < ctx->materials.nmaterials; i++) {
-        mat *mat = ctx->materials.materials + i;
-        printf("name:\t\t%s\n", mat->name);
+        mtl *mtl = ctx->materials.materials + i;
+        printf("name:\t\t%s\n", mtl->name);
         printf("ambient:\t[ ");
         for (int j = 0; j < 3; j++) {
-            printf("%8.4f ", mat->ambient[j]);
+            printf("%8.4f ", mtl->ambient[j]);
         }
         printf("]\n");
         printf("diffuse:\t[ ");
         for (int j = 0; j < 3; j++) {
-            printf("%8.4f ", mat->diffuse[j]);
+            printf("%8.4f ", mtl->diffuse[j]);
         }
         printf("]\n");
         printf("specular:\t[ ");
         for (int j = 0; j < 3; j++) {
-            printf("%8.4f ", mat->specular[j]);
+            printf("%8.4f ", mtl->specular[j]);
         }
         printf("]\n");
         printf("emissive:\t[ ");
         for (int j = 0; j < 3; j++) {
-            printf("%8.4f ", mat->emissive[j]);
+            printf("%8.4f ", mtl->emissive[j]);
         }
         printf("]\n");
-        printf("shininess:\t%10.4f\n", mat->shininess);
-        printf("refraction:\t%10.4f\n", mat->refraction);
-        printf("transparency:\t%10.4f\n", mat->transparency);
-        printf("illum:\t\t%5d\n", mat->illum);
-        if (mat->map_ambient) {
-            printf("ambient map: %s\n", mat->map_ambient);
+        printf("shininess:\t%10.4f\n", mtl->shininess);
+        printf("refraction:\t%10.4f\n", mtl->refraction);
+        printf("transparency:\t%10.4f\n", mtl->transparency);
+        printf("illum:\t\t%5d\n", mtl->illum);
+        if (mtl->map_ambient) {
+            printf("ambient map: %s\n", mtl->map_ambient);
         }
-        if (mat->map_diffuse) {
-            printf("diffuse map: %s\n", mat->map_diffuse);
+        if (mtl->map_diffuse) {
+            printf("diffuse map: %s\n", mtl->map_diffuse);
         }
-        if (mat->map_specular) {
-            printf("specular map: %s\n", mat->map_specular);
+        if (mtl->map_specular) {
+            printf("specular map: %s\n", mtl->map_specular);
         }
-        if (mat->map_highlight) {
-            printf("highlight map: %s\n", mat->map_highlight);
+        if (mtl->map_highlight) {
+            printf("highlight map: %s\n", mtl->map_highlight);
         }
-        if (mat->map_alpha) {
-            printf("alpha map: %s\n", mat->map_alpha);
+        if (mtl->map_alpha) {
+            printf("alpha map: %s\n", mtl->map_alpha);
         }
-        if (mat->map_bump) {
-            printf("bump map: %s\n", mat->map_bump);
+        if (mtl->map_bump) {
+            printf("bump map: %s\n", mtl->map_bump);
         }
     }
 }
@@ -468,32 +468,34 @@ void objctx_print(objctx *ctx) {
         printf("%4d ", ctx->matindices[i]);
     }
     putchar('\n');
-    mat_print(ctx);
+    mtl_print(ctx);
 }
 
-void matctx_free(matctx *ctx) {
+void mtlctx_free(mtlctx *ctx) {
     free(ctx->filename);
     for (int i = 0; i < ctx->nmaterials; i++) {
-        mat *mat = ctx->materials + i;
-        if (mat->map_ambient) {
-            free(mat->map_ambient);
+        mtl *mtl = ctx->materials + i;
+        if (mtl->map_ambient) {
+            free(mtl->map_ambient);
         }
-        if (mat->map_diffuse) {
-            free(mat->map_diffuse);
+        if (mtl->map_diffuse) {
+            free(mtl->map_diffuse);
         }
-        if (mat->map_specular) {
-            free(mat->map_specular);
+        if (mtl->map_specular) {
+            free(mtl->map_specular);
         }
-        if (mat->map_highlight) {
-            free(mat->map_highlight);
+        if (mtl->map_highlight) {
+            free(mtl->map_highlight);
         }
-        if (mat->map_alpha) {
-            free(mat->map_alpha);
+        if (mtl->map_alpha) {
+            free(mtl->map_alpha);
         }
-        if (mat->map_bump) {
-            free(mat->map_bump);
+        if (mtl->map_bump) {
+            free(mtl->map_bump);
         }
+        free(mtl->name);
     }
+    free(ctx->materials);
 }
 
 void objctx_free(objctx *ctx) {
@@ -502,7 +504,9 @@ void objctx_free(objctx *ctx) {
     free(ctx->texcoords);
     free(ctx->faces);
     free(ctx->buffer);
-    matctx_free(&ctx->materials);
+    free(ctx->meshoffsets);
+    free(ctx->matindices);
+    mtlctx_free(&ctx->materials);
 }
 
 void parse_obj(objctx *ctx, const char *filename) {
