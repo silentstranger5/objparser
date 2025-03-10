@@ -33,11 +33,11 @@ int strcomp(const void *key, const void *elem) {
 int find_objkey(char *s) {
     char *key = strtok(s, " ");
     size_t nkeys = sizeof(objkeys) / sizeof(char *);
-    char **kptr = (char **) bsearch(&key, objkeys, nkeys, sizeof(char *), strcomp);
+    const char **kptr = (const char **) bsearch(&key, objkeys, nkeys, sizeof(char *), strcomp);
     if (!kptr) {
         return -1;
     }
-    return kptr - objkeys;
+    return (int) (kptr - objkeys);
 }
 
 void mtl_filename(objctx *ctx, char *filename) {
@@ -115,13 +115,13 @@ void count_key(objctx *ctx, char *s) {
 }
 
 void objctx_malloc(objctx *ctx) {
-    ctx->vertices = malloc(3 * ctx->nvertices * sizeof(float));
-    ctx->normals = malloc(3 * ctx->nnormals * sizeof(float));
-    ctx->texcoords = malloc(2 * ctx->ntexcoords * sizeof(float));
-    ctx->faces = malloc(3 * ctx->nfaceverts * sizeof(int));
+    ctx->vertices = calloc(3 * ctx->nvertices, sizeof(float));
+    ctx->normals = calloc(3 * ctx->nnormals, sizeof(float));
+    ctx->texcoords = calloc(2 * ctx->ntexcoords, sizeof(float));
+    ctx->faces = calloc(3 * ctx->nfaceverts, sizeof(int));
     ctx->buffer = calloc(8 * ctx->nfaceverts, sizeof(float));
-    ctx->meshoffsets = malloc((ctx->nmeshes + 1) * sizeof(int));
-    ctx->matindices = malloc(ctx->nmeshes * sizeof(int));
+    ctx->meshoffsets = calloc((ctx->nmeshes + 1), sizeof(int));
+    ctx->matindices = calloc(ctx->nmeshes, sizeof(int));
     ctx->materials.materials = calloc(ctx->materials.nmaterials, sizeof(mtl));
 }
 
@@ -138,11 +138,11 @@ void objctx_reset(objctx *ctx) {
 int find_mtlkey(char *s) {
     size_t nkeys = sizeof(mtlkeys) / sizeof(char *);
     char *key = strtok(s, " ");
-    char **kptr = (char **) bsearch(&key, mtlkeys, nkeys, sizeof(char *), strcomp);
+    const char **kptr = (const char **) bsearch(&key, mtlkeys, nkeys, sizeof(char *), strcomp);
     if (!kptr) {
         return -1;
     }
-    return kptr - mtlkeys;
+    return (int) (kptr - mtlkeys);
 }
 
 void parse_mtlline(objctx *ctx, char *s) {
@@ -153,25 +153,25 @@ void parse_mtlline(objctx *ctx, char *s) {
     case KA:
         for (int i = 0; i < 3; i++) {
             char *astr = strtok(NULL, " ");
-            mtl->ambient[i] = atof(astr);
+            mtl->ambient[i] = (float) atof(astr);
         }
         break;
     case KD:
         for (int i = 0; i < 3; i++) {
             char *dstr = strtok(NULL, " ");
-            mtl->diffuse[i] = atof(dstr);
+            mtl->diffuse[i] = (float) atof(dstr);
         }
         break;
     case KE:
         for (int i = 0; i < 3; i++) {
             char *estr = strtok(NULL, " ");
-            mtl->emissive[i] = atof(estr);
+            mtl->emissive[i] = (float) atof(estr);
         }
         break;
     case KS:
         for (int i = 0; i < 3; i++) {
             char *sstr = strtok(NULL, " ");
-            mtl->specular[i] = atof(sstr);
+            mtl->specular[i] = (float) atof(sstr);
         }
         break;
     case NI:
@@ -184,7 +184,7 @@ void parse_mtlline(objctx *ctx, char *s) {
         break;
     case D:
         char *tstr = strtok(NULL, " ");
-        mtl->transparency = atof(tstr);
+        mtl->transparency = (float) atof(tstr);
         break;
     case ILLUM:
         char *istr = strtok(NULL, " ");
@@ -287,7 +287,7 @@ void parse_objline(objctx *ctx, char *s) {
         float *vptr = ctx->vertices + 3 * ctx->nvertices++;
         for (int i = 0; i < 3; i++) {
             char *verts = strtok(NULL, " ");
-            float vert = atof(verts);
+            float vert = (float) atof(verts);
             vptr[i] = vert;
         }
         break;
@@ -303,7 +303,7 @@ void parse_objline(objctx *ctx, char *s) {
         float *tptr = ctx->texcoords + 2 * ctx->ntexcoords++;
         for (int i = 0; i < 2; i++) {
             char *texs = strtok(NULL, " ");
-            float tex = atof(texs);
+            float tex = (float) atof(texs);
             tptr[i] = tex;
         }
         break;
